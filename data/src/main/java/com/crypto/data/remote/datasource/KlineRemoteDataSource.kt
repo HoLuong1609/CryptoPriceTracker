@@ -26,8 +26,7 @@ class KlineRemoteDataSource @Inject constructor(
     ): Flow<AppResult<List<KlineResponse>>> = flow {
 
         emit(AppResult.Loading)
-
-        val result = api.getKlines(
+        val call = api.getKlines(
             symbol = symbol,
             interval = interval,
             startTime = startTime,
@@ -35,11 +34,22 @@ class KlineRemoteDataSource @Inject constructor(
             limit = config.limitMax
         )
 
-        val mapped = result.map {
-            it.toKlineResponse(symbol, interval)
-        }
+        val response = call.execute()
+        if (response.isSuccessful) {
 
-        emit(AppResult.Success(mapped) as AppResult<List<KlineResponse>>)
+            val mapped = response.body()?.map {
+                it.toKlineResponse(symbol, interval)
+            }
+            mapped?.let {
+                emit(AppResult.Success(it) as AppResult<List<KlineResponse>>)
+            }
+        } else {
+            emit(
+                AppResult.Error(
+                    message = response.message()
+                ) as AppResult<List<KlineResponse>>
+            )
+        }
 
     }.catch { e ->
 
