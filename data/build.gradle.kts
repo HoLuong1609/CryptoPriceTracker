@@ -45,6 +45,17 @@ dependencies {
     implementation(project(":domain"))
     api(project(":core"))
 
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(libs.okhttp3.okhttp)
+    implementation(libs.okhttp3.loggingInterceptor)
+
+    // Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
     // Hilt
     api(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
