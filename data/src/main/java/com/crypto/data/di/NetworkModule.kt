@@ -1,6 +1,5 @@
 package com.crypto.data.di
 
-import com.crypto.data.BuildConfig
 import com.crypto.data.network.NetworkConfig
 import com.crypto.data.remote.api.BinanceApi
 import com.google.gson.Gson
@@ -24,19 +23,10 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideNetworkConfig(): NetworkConfig {
-        val isDebug = BuildConfig.DEBUG
 
         return NetworkConfig(
-            baseUrl = if (isDebug)
-                "https://testnet.binance.vision"
-            else
-                "https://fapi.binance.com",
-
-            wsUrl = if (isDebug)
-                "wss://testnet.binance.vision/ws-api/v3"
-            else
-                "wss://stream.binance.com:9443",
-
+            baseUrl = "https://fapi.binance.com",
+            wsUrl = "wss://stream.binance.com:9443",
             limitMin = 500,
             limitMax = 1500
         )

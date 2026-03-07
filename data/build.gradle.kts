@@ -43,7 +43,9 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(project(":domain"))
-    api(project(":core"))
+    implementation(project(":core"))
+
+    implementation(libs.kotlinx.coroutines.core)
 
     // Retrofit
     implementation(libs.retrofit)
