@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Crypto Price Tracker</string>
+    <string name="no_klines_data_available">No klines data available</string>
+    <string name="line_chart">📈 Line Chart</string>
+    <string name="candlestick">🕯️ Candlestick</string>
+    <string name="error_loading_chart">Error loading chart: %1$s</string>
+    <string name="close_price">Close Price</string>
 </resources>
