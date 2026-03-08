@@ -1,30 +1,30 @@
 package com.crypto.data.di
 
-import com.crypto.data.repository.KlineRepositoryImpl
 import com.crypto.domain.repository.KlineRepository
+import com.crypto.domain.repository.MarketRepository
 import com.crypto.domain.usecase.GetKlinesUseCase
-import dagger.Binds
+import com.crypto.domain.usecase.GetMarketCoinsUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
+import dagger.hilt.android.components.ViewModelComponent
 
 @Module
-@InstallIn(SingletonComponent::class)
-interface UseCaseModule {
+@InstallIn(ViewModelComponent::class)
+object UseCaseModule {
 
-    @Binds
-    fun bindKlineRepository(
-        impl: KlineRepositoryImpl
-    ): KlineRepository
+    @Provides
+    fun provideGetKlinesUseCase(
+        repository: KlineRepository
+    ): GetKlinesUseCase {
+        return GetKlinesUseCase(repository)
+    }
 
-    companion object {
-        @Provides
-        fun provideGetKlinesUseCase(
-            repository: KlineRepository
-        ): GetKlinesUseCase {
-            return GetKlinesUseCase(repository)
-        }
+    @Provides
+    fun provideGetMarketCoinsUseCase(
+        repository: MarketRepository
+    ): GetMarketCoinsUseCase {
+
+        return GetMarketCoinsUseCase(repository)
     }
 }
-
