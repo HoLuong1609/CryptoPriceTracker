@@ -25,7 +25,7 @@ object NetworkModule {
     fun provideNetworkConfig(): NetworkConfig {
 
         return NetworkConfig(
-            baseUrl = "https://fapi.binance.com",
+            baseUrl = "https://api.binance.com",
             wsUrl = "wss://stream.binance.com:9443",
             limitMin = 500,
             limitMax = 1500
