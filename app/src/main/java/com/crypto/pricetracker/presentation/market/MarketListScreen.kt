@@ -1,5 +1,6 @@
 package com.crypto.pricetracker.presentation.market
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
@@ -7,34 +8,50 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.crypto.domain.model.MarketCoin
+import com.crypto.pricetracker.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MarketListScreen(
-    viewModel: MarketViewModel = hiltViewModel()
+    modifier: Modifier = Modifier,
+    onMarketClick: (String) -> Unit,
+    viewModel: MarketViewModel = hiltViewModel(),
 ) {
 
-    val markets = viewModel.markets.collectAsLazyPagingItems()
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = stringResource(R.string.market_list)) }
+            )
+        },
+        modifier = modifier
+    ) { innerPadding ->
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize()
-    ) {
+        val markets = viewModel.markets.collectAsLazyPagingItems()
 
-        items(markets.itemCount) { index ->
-            markets[index]?.let {
-                MarketRow(it)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(innerPadding)
+        ) {
+
+            items(markets.itemCount) { index ->
+                markets[index]?.let {
+                    MarketRow(coin = it, onClick = { onMarketClick(it.symbol) })
+                }
             }
-        }
 
+        }
     }
 }
 
 @Composable
 private fun MarketRow(
-    coin: MarketCoin
+    coin: MarketCoin,
+    onClick: () -> Unit
 ) {
 
     val change = coin.priceChangePercent
@@ -43,6 +60,7 @@ private fun MarketRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { onClick() }
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

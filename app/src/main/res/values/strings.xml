@@ -5,4 +5,5 @@
     <string name="candlestick">🕯️ Candlestick</string>
     <string name="error_loading_chart">Error loading chart: %1$s</string>
     <string name="close_price">Close Price</string>
+    <string name="market_list">Market coin List</string>
 </resources>

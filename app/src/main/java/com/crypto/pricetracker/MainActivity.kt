@@ -4,9 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.Modifier
-import com.crypto.pricetracker.presentation.chart.ChartRoute
+import com.crypto.pricetracker.presentation.navitgation.AppNavHost
 import com.crypto.pricetracker.ui.theme.MyApplicationTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -17,11 +15,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
-                ChartRoute(
-                    symbol = "BTCUSDT",
-                    onBackClick = { finish() },
-                    modifier = Modifier.fillMaxSize()
-                )
+                AppNavHost()
             }
         }
     }
