@@ -12,6 +12,12 @@ kotlin {
     }
 }
 dependencies {
+    implementation(libs.androidx.room.paging)
     implementation(libs.kotlinx.coroutines.core)
     implementation(project(":core"))
+
+    testImplementation(libs.junit)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

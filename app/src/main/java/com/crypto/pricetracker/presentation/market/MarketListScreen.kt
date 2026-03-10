@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,6 +24,13 @@ fun MarketListScreen(
     onMarketClick: (String) -> Unit,
     viewModel: MarketViewModel = hiltViewModel(),
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel.errorEvents) {
+        viewModel.errorEvents.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -29,6 +38,7 @@ fun MarketListScreen(
                 title = { Text(text = stringResource(R.string.market_list)) }
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = modifier
     ) { innerPadding ->
 

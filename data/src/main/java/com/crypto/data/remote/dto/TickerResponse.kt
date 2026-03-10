@@ -4,18 +4,21 @@ import com.google.gson.annotations.SerializedName
 
 data class TickerResponse(
 
-    @SerializedName("s")
-    val symbol: String,
+    @SerializedName(value = "s", alternate = ["symbol"])
+    val symbol: String?,
 
-    @SerializedName("c")
-    val lastPrice: String,
+    @SerializedName(value = "c", alternate = ["lastPrice"])
+    val lastPrice: String?,
 
-    @SerializedName("p")
-    val priceChangePercent: String,
+    @SerializedName(value = "P", alternate = ["priceChangePercent"])
+    val priceChangePercent: String?,
 
-    val highPrice: String,
+    @SerializedName(value = "h", alternate = ["highPrice"])
+    val highPrice: String?,
 
-    val lowPrice: String,
+    @SerializedName(value = "l", alternate = ["lowPrice"])
+    val lowPrice: String?,
 
-    val volume: String
+    @SerializedName(value = "v", alternate = ["volume"])
+    val volume: String?
 )

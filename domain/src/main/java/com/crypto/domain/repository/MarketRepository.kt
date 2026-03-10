@@ -1,11 +1,12 @@
 package com.crypto.domain.repository
 
+import androidx.paging.PagingData
 import com.crypto.domain.model.MarketCoin
-import com.crypto.domain.model.Ticker
 import kotlinx.coroutines.flow.Flow
 
 interface MarketRepository {
 
     suspend fun getMarketCoins(): List<MarketCoin>
-    fun observeTicker(): Flow<List<Ticker>>
+    fun startTickerUpdates(): Flow<Unit>
+    fun getPagedMarketCoins(): Flow<PagingData<MarketCoin>>
 }
