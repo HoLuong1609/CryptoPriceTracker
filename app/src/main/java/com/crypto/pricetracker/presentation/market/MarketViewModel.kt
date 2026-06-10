@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.crypto.core.logging.Logger
+import com.crypto.domain.extension.withResilience
 import com.crypto.domain.model.MarketCoin
 import com.crypto.domain.usecase.GetMarketCoinsUseCase
 import com.crypto.domain.usecase.GetPagedMarketCoinsUseCase
@@ -20,41 +22,62 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.receiveAsFlow
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
 class MarketViewModel @Inject constructor(
     private val getMarketCoinsUseCase: GetMarketCoinsUseCase,
     private val startTickerUpdates: StartTickerUpdatesUseCase,
     private val getPagedMarketCoinsUseCase: GetPagedMarketCoinsUseCase,
-    private val observeNetworkStatusUseCase: ObserveNetworkStatusUseCase
+    private val observeNetworkStatusUseCase: ObserveNetworkStatusUseCase,
+    private val logger: Logger
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "MarketViewModel"
+    }
 
     private val _errorEvents = Channel<String>(Channel.BUFFERED)
     val errorEvents = _errorEvents.receiveAsFlow()
 
     init {
+        logger.d(TAG, "MarketViewModel initialized")
         observeNetwork()
     }
 
     val markets: Flow<PagingData<MarketCoin>> =
         getPagedMarketCoinsUseCase()
             .cachedIn(viewModelScope)
+            .also { logger.d(TAG, "markets Flow created and cached") }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeNetwork() {
+        logger.d(TAG, "Starting observeNetwork()...")
         observeNetworkStatusUseCase().flatMapLatest { isOnline ->
+            logger.d(TAG, "Network status changed: isOnline=$isOnline")
             if (isOnline) {
+                logger.i(TAG, "Network online - starting market data streams")
+
                 merge(
                     getMarketCoinsUseCase(),
                     startTickerUpdates()
-                ).catch { e ->
+                )
+                .withResilience(
+                    bufferSize = 100,
+                    timeout = 8.seconds
+                )
+                .catch { e ->
+                    logger.e(TAG, "Error in market streams: ${e.message}", e)
                     _errorEvents.send(e.message ?: "An unexpected error occurred")
+                    // Don't re-throw - keep stream alive for recovery
                 }
             } else {
+                logger.i(TAG, "Network offline")
                 _errorEvents.send("No internet connection")
                 emptyFlow()
             }
         }
             .launchIn(viewModelScope)
+            .also { logger.d(TAG, "observeNetwork stream launched") }
     }
 }

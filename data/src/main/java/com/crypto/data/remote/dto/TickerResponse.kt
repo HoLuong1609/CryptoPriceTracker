@@ -13,6 +13,9 @@ data class TickerResponse(
     @SerializedName(value = "P", alternate = ["priceChangePercent"])
     val priceChangePercent: String?,
 
+    @SerializedName(value = "o", alternate = ["openPrice"])
+    val openPrice: String?,
+
     @SerializedName(value = "h", alternate = ["highPrice"])
     val highPrice: String?,
 

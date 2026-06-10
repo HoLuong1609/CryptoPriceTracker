@@ -88,7 +88,7 @@ private fun MarketRow(
         )
 
         Text(
-            text = "${coin.priceChangePercent}%",
+            text = "${"%.3f".format(coin.priceChangePercent)}%",
             color = color,
             style = MaterialTheme.typography.bodyLarge
         )
