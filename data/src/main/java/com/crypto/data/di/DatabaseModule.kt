@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Room
 import com.crypto.data.local.room.CryptoDatabase
 import com.crypto.data.local.room.MarketDao
+import com.crypto.data.local.room.OrderBookDao
+import com.crypto.data.local.room.TradeDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,7 +27,9 @@ object DatabaseModule {
             context,
             CryptoDatabase::class.java,
             "crypto_database"
-        ).build()
+        )
+            .fallbackToDestructiveMigration(false)
+            .build()
 
     }
 
@@ -35,6 +39,24 @@ object DatabaseModule {
     ): MarketDao {
 
         return database.marketDao()
+
+    }
+
+    @Provides
+    fun provideOrderBookDao(
+        database: CryptoDatabase
+    ): OrderBookDao {
+
+        return database.orderBookDao()
+
+    }
+
+    @Provides
+    fun provideTradeDao(
+        database: CryptoDatabase
+    ): TradeDao {
+
+        return database.tradeDao()
 
     }
 
