@@ -5,5 +5,36 @@
     <string name="candlestick">🕯️ Candlestick</string>
     <string name="error_loading_chart">Error loading chart: %1$s</string>
     <string name="close_price">Close Price</string>
-    <string name="market_list">Market coin List</string>
+    <string name="market_list">Markets</string>
+
+    <!-- Market List -->
+    <string name="search_hint">Search coin pair and trend</string>
+    <string name="header_name_vol">Name / Vol</string>
+    <string name="header_last_price">Last Price</string>
+    <string name="header_24h_chg">24h Chg%</string>
+    <string name="volume_suffix_m">%1$sM</string>
+    <string name="volume_suffix_k">%1$sK</string>
+    <string name="volume_suffix_b">%1$sB</string>
+    <string name="price_vnd_format">đ%1$s</string>
+    <string name="change_percent_format">%1$s%%</string>
+
+    <!-- Orderbook -->
+    <string name="order_book">Order Book</string>
+    <string name="spread">Spread: $%1$s</string>
+    <string name="spread_percentage">(%1$s%%)</string>
+    <string name="asks_sell">ASKS (Sell)</string>
+    <string name="bids_buy">BIDS (Buy)</string>
+    <string name="price_format">$%1$s</string>
+    <string name="quantity_format">%1$s</string>
+    <string name="retry">Retry</string>
+    <string name="back_arrow">←</string>
+
+    <!-- Trades -->
+    <string name="recent_trades">Recent Trades</string>
+    <string name="filter_all">All</string>
+    <string name="filter_buys">Buys</string>
+    <string name="filter_sells">Sells</string>
+    <string name="all">All</string>
+    <string name="buys">Buys</string>
+    <string name="sells">Sells</string>
 </resources>
