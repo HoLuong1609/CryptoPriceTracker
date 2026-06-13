@@ -6,6 +6,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.*
 import com.crypto.pricetracker.presentation.chart.ChartRoute
 import com.crypto.pricetracker.presentation.market.MarketListScreen
+import com.crypto.pricetracker.presentation.orderbook.OrderBookScreen
+import com.crypto.pricetracker.presentation.trades.TradesScreen
 
 @Composable
 fun AppNavHost() {
@@ -34,6 +36,18 @@ fun AppNavHost() {
                 symbol = symbol,
                 onBackClick = { navController.navigateUp() },
                 modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        composable(NavRoutes.ORDERBOOK) { _ ->
+            OrderBookScreen(
+                onNavigateBack = { navController.navigateUp() }
+            )
+        }
+
+        composable(NavRoutes.TRADES) { _ ->
+            TradesScreen(
+                onNavigateBack = { navController.navigateUp() }
             )
         }
     }

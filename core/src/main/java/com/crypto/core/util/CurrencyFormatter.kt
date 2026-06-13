@@ -67,5 +67,41 @@ object CurrencyFormatter {
             }
         }
     }
+
+    /**
+     * Format quantity with appropriate decimal places
+     */
+    fun formatQuantity(quantity: Double): String {
+        return when {
+            quantity >= 1_000 -> String.format(Locale.US, "%,.2f", quantity)
+            quantity >= 1 -> String.format(Locale.US, "%.4f", quantity)
+            quantity >= 0.001 -> String.format(Locale.US, "%.6f", quantity)
+            else -> String.format(Locale.US, "%.8f", quantity)
+        }
+    }
+
+    /**
+     * Format spread value with dynamic precision based on magnitude
+     * Used in OrderBook to show precise spread amounts
+     */
+    fun formatSpreadValue(spreadValue: Double): String {
+        return when {
+            spreadValue >= 1.0 -> String.format(Locale.US, "%.2f", spreadValue)
+            spreadValue >= 0.01 -> String.format(Locale.US, "%.4f", spreadValue)
+            else -> String.format(Locale.US, "%.6f", spreadValue)
+        }
+    }
+
+    /**
+     * Format spread percentage with dynamic precision based on magnitude
+     * Used in OrderBook to show precise spread percentage
+     */
+    fun formatSpreadPercentage(spreadPercent: Double): String {
+        return when {
+            spreadPercent >= 0.1 -> String.format(Locale.US, "%.3f", spreadPercent)
+            spreadPercent >= 0.01 -> String.format(Locale.US, "%.4f", spreadPercent)
+            else -> String.format(Locale.US, "%.6f", spreadPercent)
+        }
+    }
 }
 
