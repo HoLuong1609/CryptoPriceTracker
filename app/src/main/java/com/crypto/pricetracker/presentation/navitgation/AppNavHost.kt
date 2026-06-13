@@ -4,10 +4,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.*
-import com.crypto.pricetracker.presentation.chart.ChartRoute
+import com.crypto.pricetracker.presentation.detail.CoinDetailScreen
 import com.crypto.pricetracker.presentation.market.MarketListScreen
-import com.crypto.pricetracker.presentation.orderbook.OrderBookScreen
-import com.crypto.pricetracker.presentation.trades.TradesScreen
 
 @Composable
 fun AppNavHost() {
@@ -20,34 +18,20 @@ fun AppNavHost() {
     ) {
 
         composable(NavRoutes.MARKET) {
-
             MarketListScreen(
                 onMarketClick = { symbol ->
-                    navController.navigate("chart/$symbol")
+                    navController.navigate("detail/$symbol")
                 }
             )
         }
 
-        composable(NavRoutes.CHART) { backStack ->
-
+        composable(NavRoutes.DETAIL) { backStack ->
             val symbol = backStack.arguments?.getString(RouteArgs.SYMBOL) ?: ""
 
-            ChartRoute(
+            CoinDetailScreen(
                 symbol = symbol,
                 onBackClick = { navController.navigateUp() },
                 modifier = Modifier.fillMaxSize()
-            )
-        }
-
-        composable(NavRoutes.ORDERBOOK) { _ ->
-            OrderBookScreen(
-                onNavigateBack = { navController.navigateUp() }
-            )
-        }
-
-        composable(NavRoutes.TRADES) { _ ->
-            TradesScreen(
-                onNavigateBack = { navController.navigateUp() }
             )
         }
     }

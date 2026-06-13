@@ -93,14 +93,11 @@ class KlineViewModel @Inject constructor(
     ): Long {
 
         val candleMillis = when(interval) {
-
-            KlineInterval.ONE_MINUTE -> 60_000L
-            KlineInterval.THREE_MINUTES -> 180_000L
-            KlineInterval.FIVE_MINUTES -> 300_000L
             KlineInterval.FIFTEEN_MINUTES -> 900_000L
             KlineInterval.THIRTY_MINUTES -> 1_800_000L
             KlineInterval.ONE_HOUR -> 3_600_000L
             KlineInterval.FOUR_HOURS -> 14_400_000L
+            KlineInterval.ONE_DAY -> 86_400_000L
         }
 
         return endTime - candleMillis * DEFAULT_CANDLE_COUNT
