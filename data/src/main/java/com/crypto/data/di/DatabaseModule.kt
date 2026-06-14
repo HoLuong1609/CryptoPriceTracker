@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.room.Room
 import com.crypto.data.local.room.CryptoDatabase
 import com.crypto.data.local.room.MarketDao
-import com.crypto.data.local.room.OrderBookDao
 import com.crypto.data.local.room.TradeDao
 import dagger.Module
 import dagger.Provides
@@ -39,15 +38,6 @@ object DatabaseModule {
     ): MarketDao {
 
         return database.marketDao()
-
-    }
-
-    @Provides
-    fun provideOrderBookDao(
-        database: CryptoDatabase
-    ): OrderBookDao {
-
-        return database.orderBookDao()
 
     }
 

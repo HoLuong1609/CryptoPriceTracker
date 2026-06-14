@@ -6,7 +6,6 @@ import androidx.room.RoomDatabase
 @Database(
     entities = [
         MarketCoinEntity::class,
-        OrderBookEntity::class,
         TradeEntity::class
     ],
     version = 2,
@@ -15,7 +14,6 @@ import androidx.room.RoomDatabase
 abstract class CryptoDatabase : RoomDatabase() {
 
     abstract fun marketDao(): MarketDao
-    abstract fun orderBookDao(): OrderBookDao
     abstract fun tradeDao(): TradeDao
 
 }

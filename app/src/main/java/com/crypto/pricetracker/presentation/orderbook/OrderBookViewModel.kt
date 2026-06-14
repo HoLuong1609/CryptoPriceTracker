@@ -9,6 +9,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -34,12 +35,16 @@ class OrderBookViewModel @AssistedInject constructor(
     private val _errorEvents = Channel<String>(Channel.BUFFERED)
     val errorEvents = _errorEvents.receiveAsFlow()
 
+    private var observingJob: Job? = null
+
     init {
         loadOrderBook()
     }
 
     private fun loadOrderBook() {
-        viewModelScope.launch {
+        observingJob?.cancel()
+
+        observingJob = viewModelScope.launch {
             try {
                 // Step 1: Load snapshot
                 _uiState.value = OrderBookUiState.Loading
@@ -61,8 +66,20 @@ class OrderBookViewModel @AssistedInject constructor(
         }
     }
 
+    fun resumeUpdates() {
+        // If not observing, restart
+        if (observingJob?.isActive != true) {
+            loadOrderBook()
+        }
+    }
+
     fun retry() {
         loadOrderBook()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        observingJob?.cancel()
     }
 }
 

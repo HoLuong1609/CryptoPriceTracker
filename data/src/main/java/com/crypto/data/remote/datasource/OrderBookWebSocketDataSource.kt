@@ -2,7 +2,7 @@ package com.crypto.data.remote.datasource
 
 import com.crypto.core.logging.Logger
 import com.crypto.data.remote.datasource.stream.WebSocketStream
-import com.crypto.data.remote.dto.DepthUpdateResponse
+import com.crypto.data.remote.dto.PartialDepthResponse
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -18,25 +18,25 @@ class OrderBookWebSocketDataSource @Inject constructor(
     private val logger: Logger
 ) {
     /**
-     * Connect to depth stream for a symbol
+     * Connect to partial depth stream for a symbol
      *
      * @param symbol Trading pair (e.g., "BTCUSDT")
      * @param level Number of price levels (5, 10, 20)
      * @param updateSpeed Update frequency ("100ms" or "1000ms")
-     * @return Flow of depth updates
+     * @return Flow of partial depth snapshots
      */
     fun connectDepthStream(
         symbol: String,
         level: Int = 20,
         updateSpeed: String = "100ms"
-    ): Flow<DepthUpdateResponse> {
+    ): Flow<PartialDepthResponse> {
         logger.i(message = "Starting orderbook stream: $symbol (level=$level, speed=$updateSpeed)")
 
         val stream = WebSocketStream.DepthStream(symbol, level, updateSpeed)
 
         return wsDataSource.connect(
             stream = stream,
-            type = object : TypeToken<DepthUpdateResponse>() {}.type
+            type = object : TypeToken<PartialDepthResponse>() {}.type
         )
     }
 }
