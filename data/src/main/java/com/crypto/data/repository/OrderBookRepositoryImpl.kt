@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -63,23 +64,27 @@ class OrderBookRepositoryImpl @Inject constructor(
     override fun observeOrderBook(symbol: String): Flow<OrderBook> {
         logger.i(message = "Observing orderbook: $symbol")
 
-        // Start WebSocket in background if not already active
         if (!activeStreams.contains(symbol)) {
             activeStreams.add(symbol)
             wsDataSource.connectDepthStream(symbol)
                 .onEach { update ->
-                    logger.d(message = "Depth update: ${update.bids.size} bids, ${update.asks.size} asks")
+                    val bidCount = update.bids?.size ?: 0
+                    val askCount = update.asks?.size ?: 0
+                    logger.d(message = "Depth update: $bidCount bids, $askCount asks")
                     applyDiffUpdate(symbol, update)
+                }
+                .catch { e ->
+                    logger.e(message = "WebSocket depth stream error: ${e.message}", throwable = e)
+                    activeStreams.remove(symbol)
                 }
                 .launchIn(scope)
         }
 
-        // Return database flow (updates automatically from WebSocket)
         return dao.getOrderBook(symbol, depth = 40)
+            .distinctUntilChanged()
             .map { entities ->
                 entities.toOrderBook(symbol)
             }
-            .distinctUntilChanged()
     }
 
     /**
@@ -93,7 +98,7 @@ class OrderBookRepositoryImpl @Inject constructor(
         val entities = mutableListOf<OrderBookEntity>()
 
         // Process bids
-        update.bids.forEach { level ->
+        update.bids?.forEach { level ->
             val price = level[0].toDouble()
             val quantity = level[1].toDouble()
 
@@ -109,7 +114,7 @@ class OrderBookRepositoryImpl @Inject constructor(
         }
 
         // Process asks
-        update.asks.forEach { level ->
+        update.asks?.forEach { level ->
             val price = level[0].toDouble()
             val quantity = level[1].toDouble()
 
@@ -197,4 +202,3 @@ private fun List<OrderBookEntity>.toOrderBook(symbol: String): OrderBook {
         lastUpdateId = maxOfOrNull { it.updateId } ?: 0L
     )
 }
-

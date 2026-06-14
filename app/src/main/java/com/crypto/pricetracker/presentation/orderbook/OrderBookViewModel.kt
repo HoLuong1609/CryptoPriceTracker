@@ -1,29 +1,31 @@
 package com.crypto.pricetracker.presentation.orderbook
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.crypto.domain.model.OrderBook
 import com.crypto.domain.usecase.GetOrderBookUseCase
 import com.crypto.domain.usecase.ObserveOrderBookUseCase
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /**
  * ViewModel for Orderbook screen
  */
-@HiltViewModel
-class OrderBookViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = OrderBookViewModel.Factory::class)
+class OrderBookViewModel @AssistedInject constructor(
     private val getOrderBookUseCase: GetOrderBookUseCase,
     private val observeOrderBookUseCase: ObserveOrderBookUseCase,
-    savedStateHandle: SavedStateHandle
+    @Assisted private val symbol: String
 ) : ViewModel() {
 
-    private val symbol: String = checkNotNull(savedStateHandle.get<String>("symbol")) {
-        "Symbol is required"
+    @AssistedFactory
+    interface Factory {
+        fun create(symbol: String): OrderBookViewModel
     }
 
     private val _uiState = MutableStateFlow<OrderBookUiState>(OrderBookUiState.Loading)

@@ -34,9 +34,9 @@ data class DepthUpdateResponse(
     val finalUpdateId: Long,
 
     @SerializedName("b")
-    val bids: List<List<String>>,  // [price, quantity] - quantity=0 means remove
+    val bids: List<List<String>>? = null,
 
     @SerializedName("a")
-    val asks: List<List<String>>   // [price, quantity]
+    val asks: List<List<String>>? = null
 )
 

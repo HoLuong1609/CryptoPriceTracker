@@ -19,6 +19,7 @@ import com.crypto.domain.model.KlineInterval
 import com.crypto.pricetracker.presentation.chart.ChartContent
 import com.crypto.pricetracker.presentation.chart.KlineViewModel
 import com.crypto.pricetracker.presentation.orderbook.OrderBookScreen
+import com.crypto.pricetracker.presentation.orderbook.OrderBookViewModel
 import com.crypto.pricetracker.ui.theme.ComposeColors
 import com.crypto.pricetracker.presentation.trades.TradesScreen
 
@@ -31,6 +32,11 @@ fun CoinDetailScreen(
 ) {
     val klineState by klineViewModel.uiState.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
+
+    // Hoist ViewModels here so they survive tab switches
+    val orderBookViewModel: OrderBookViewModel = hiltViewModel<OrderBookViewModel, OrderBookViewModel.Factory> { factory ->
+        factory.create(symbol)
+    }
 
     val displaySymbol = formatSymbol(symbol)
 
@@ -108,7 +114,7 @@ fun CoinDetailScreen(
                 onIntervalSelected = { klineViewModel.changeInterval(it) }
             )
             1 -> OrderBookScreen(
-                onNavigateBack = { selectedTab = 0 }
+                viewModel = orderBookViewModel
             )
             2 -> TradesScreen(
                 onNavigateBack = { selectedTab = 0 }
