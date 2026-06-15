@@ -22,6 +22,7 @@ import com.crypto.pricetracker.presentation.orderbook.OrderBookScreen
 import com.crypto.pricetracker.presentation.orderbook.OrderBookViewModel
 import com.crypto.pricetracker.ui.theme.ComposeColors
 import com.crypto.pricetracker.presentation.trades.TradesScreen
+import com.crypto.pricetracker.presentation.trades.TradesViewModel
 
 @Composable
 fun CoinDetailScreen(
@@ -35,6 +36,9 @@ fun CoinDetailScreen(
 
     // Hoist ViewModels here so they survive tab switches
     val orderBookViewModel: OrderBookViewModel = hiltViewModel<OrderBookViewModel, OrderBookViewModel.Factory> { factory ->
+        factory.create(symbol)
+    }
+    val tradesViewModel: TradesViewModel = hiltViewModel<TradesViewModel, TradesViewModel.Factory> { factory ->
         factory.create(symbol)
     }
 
@@ -117,7 +121,7 @@ fun CoinDetailScreen(
                 viewModel = orderBookViewModel
             )
             2 -> TradesScreen(
-                onNavigateBack = { selectedTab = 0 }
+                viewModel = tradesViewModel
             )
         }
     }

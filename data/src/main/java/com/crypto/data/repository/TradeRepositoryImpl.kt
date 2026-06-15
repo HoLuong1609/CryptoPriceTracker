@@ -2,18 +2,23 @@ package com.crypto.data.repository
 
 import com.crypto.core.logging.Logger
 import com.crypto.data.local.room.TradeDao
-import com.crypto.data.local.room.TradeEntity
+import com.crypto.data.mapper.toDomain
+import com.crypto.data.mapper.toEntity
 import com.crypto.data.remote.api.BinanceApi
 import com.crypto.data.remote.datasource.TradeWebSocketDataSource
-import com.crypto.data.remote.dto.TradeResponse
-import com.crypto.data.remote.dto.TradeStreamResponse
 import com.crypto.domain.model.Trade
 import com.crypto.domain.repository.TradeRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Implementation of TradeRepository
@@ -23,12 +28,16 @@ import javax.inject.Inject
  * Connect WebSocket for new trades → Insert into DB
  * Observe DB changes → Emit to UI
  */
+@Singleton
 class TradeRepositoryImpl @Inject constructor(
     private val api: BinanceApi,
     private val wsDataSource: TradeWebSocketDataSource,
     private val dao: TradeDao,
     private val logger: Logger
 ) : TradeRepository {
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val activeStreams = mutableSetOf<String>()
 
     override suspend fun getRecentTrades(symbol: String, limit: Int): List<Trade> {
         logger.i(message = "Fetching recent trades: $symbol")
@@ -37,13 +46,13 @@ class TradeRepositoryImpl @Inject constructor(
             val response = api.getRecentTrades(symbol, limit)
 
             // Convert to entities and store
-            val entities = response.map { it.toEntity() }
+            val entities = response.map { it.toEntity(symbol) }
             dao.insertTrades(entities)
 
-            logger.d(message = "${entities.size} trades stored")
+            logger.d(message = "${entities.size} trades stored for $symbol")
 
             // Return domain models
-            response.map { it.toDomainModel() }
+            response.map { it.toDomain(symbol) }
         } catch (e: Exception) {
             logger.e(message = "Failed to fetch trades: ${e.message}", throwable = e)
             throw e
@@ -53,20 +62,28 @@ class TradeRepositoryImpl @Inject constructor(
     override fun observeTradesStream(symbol: String): Flow<List<Trade>> {
         logger.i(message = "Observing trade stream: $symbol")
 
-        // Flow 1: Connect to WebSocket
-        val wsFlow = wsDataSource.connectTradeStream(symbol)
-            .onEach { tradeUpdate ->
-                logger.d(message = "New trade: ${tradeUpdate.price} @ ${tradeUpdate.quantity}")
+        // Launch WebSocket flow in background if not already active
+        if (!activeStreams.contains(symbol)) {
+            activeStreams.add(symbol)
 
-                // Insert into database
-                val entity = tradeUpdate.toEntity()
-                dao.insertTrades(listOf(entity))
-            }
+            wsDataSource.connectTradeStream(symbol)
+                .onEach { tradeUpdate ->
 
-        // Flow 2: Observe database
+                    // Insert into database
+                    val entity = tradeUpdate.toEntity()
+                    dao.insertTrades(listOf(entity))
+                }
+                .catch { e ->
+                    logger.e(message = "WebSocket trade stream error: ${e.message}", throwable = e)
+                    activeStreams.remove(symbol)
+                }
+                .launchIn(scope)
+        }
+
+        // Return DB Flow for UI observation
         return dao.getRecentTrades(symbol, limit = 100)
             .map { entities ->
-                entities.map { it.toDomainModel() }
+                entities.map { it.toDomain() }
             }
             .distinctUntilChanged()
     }
@@ -76,60 +93,3 @@ class TradeRepositoryImpl @Inject constructor(
         dao.deleteOldTrades(olderThan)
     }
 }
-
-/**
- * Extension: Convert TradeResponse to TradeEntity
- */
-private fun TradeResponse.toEntity(): TradeEntity {
-    return TradeEntity(
-        id = id,
-        symbol = "", // Will be set by repository
-        price = price.toDouble(),
-        quantity = qty.toDouble(),
-        time = time,
-        isBuyerMaker = isBuyerMaker
-    )
-}
-
-/**
- * Extension: Convert TradeResponse to domain model
- */
-private fun TradeResponse.toDomainModel(): Trade {
-    return Trade(
-        id = id,
-        symbol = "", // Will be set by repository
-        price = price.toDouble(),
-        quantity = qty.toDouble(),
-        time = time,
-        isBuy = !isBuyerMaker  // Invert: if buyer is maker, taker is seller
-    )
-}
-
-/**
- * Extension: Convert TradeStreamResponse to TradeEntity
- */
-private fun TradeStreamResponse.toEntity(): TradeEntity {
-    return TradeEntity(
-        id = tradeId,
-        symbol = symbol,
-        price = price.toDouble(),
-        quantity = quantity.toDouble(),
-        time = tradeTime,
-        isBuyerMaker = isBuyerMaker
-    )
-}
-
-/**
- * Extension: Convert TradeEntity to domain model
- */
-private fun TradeEntity.toDomainModel(): Trade {
-    return Trade(
-        id = id,
-        symbol = symbol,
-        price = price,
-        quantity = quantity,
-        time = time,
-        isBuy = !isBuyerMaker  // Invert: if buyer is maker, taker is seller
-    )
-}
-

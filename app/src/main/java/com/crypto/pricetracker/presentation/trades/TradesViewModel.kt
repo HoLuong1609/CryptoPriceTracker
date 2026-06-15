@@ -1,29 +1,31 @@
 package com.crypto.pricetracker.presentation.trades
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.crypto.domain.model.Trade
 import com.crypto.domain.usecase.GetRecentTradesUseCase
 import com.crypto.domain.usecase.ObserveTradesUseCase
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /**
  * ViewModel for Trades screen
  */
-@HiltViewModel
-class TradesViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = TradesViewModel.Factory::class)
+class TradesViewModel @AssistedInject constructor(
     private val getRecentTradesUseCase: GetRecentTradesUseCase,
     private val observeTradesUseCase: ObserveTradesUseCase,
-    savedStateHandle: SavedStateHandle
+    @Assisted private val symbol: String
 ) : ViewModel() {
 
-    private val symbol: String = checkNotNull(savedStateHandle.get<String>("symbol")) {
-        "Symbol is required"
+    @AssistedFactory
+    interface Factory {
+        fun create(symbol: String): TradesViewModel
     }
 
     private val _uiState = MutableStateFlow<TradesUiState>(TradesUiState.Loading)
