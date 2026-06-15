@@ -21,6 +21,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.crypto.core.theme.BinanceColors.ACCENT_YELLOW
 import com.crypto.core.theme.BinanceColors.BACKGROUND_SECONDARY
@@ -45,6 +48,27 @@ fun MarketListScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     var searchQuery by remember { mutableStateOf("") }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    // Lifecycle-aware WebSocket management
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    viewModel.startObserving()
+                }
+                Lifecycle.Event.ON_PAUSE -> {
+                    viewModel.stopObserving()
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     LaunchedEffect(viewModel.errorEvents) {
         viewModel.errorEvents.collect { message ->

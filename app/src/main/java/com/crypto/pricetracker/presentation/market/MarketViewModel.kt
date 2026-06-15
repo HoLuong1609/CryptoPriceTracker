@@ -13,6 +13,7 @@ import com.crypto.domain.usecase.ObserveNetworkStatusUseCase
 import com.crypto.domain.usecase.StartTickerUpdatesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -40,29 +41,48 @@ class MarketViewModel @Inject constructor(
     private val _errorEvents = Channel<String>(Channel.BUFFERED)
     val errorEvents = _errorEvents.receiveAsFlow()
 
-    init {
-        logger.d(TAG, "MarketViewModel initialized")
-        observeNetwork()
-    }
+    private var observingJob: Job? = null
+
+    private var hasInitializedOnce = false  // Prevent re-fetching on resume
 
     val markets: Flow<PagingData<MarketCoin>> =
         getPagedMarketCoinsUseCase()
             .cachedIn(viewModelScope)
             .also { logger.d(TAG, "markets Flow created and cached") }
 
+    fun startObserving() {
+        if (observingJob?.isActive == true) {
+            logger.d(TAG, "Already observing, skip")
+            return
+        }
+        logger.d(TAG, "startObserving() - Resume WebSocket")
+        observeNetwork()
+    }
+
+    fun stopObserving() {
+        logger.d(TAG, "stopObserving() - Pause WebSocket")
+        observingJob?.cancel()
+        observingJob = null
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeNetwork() {
         logger.d(TAG, "Starting observeNetwork()...")
-        observeNetworkStatusUseCase().flatMapLatest { isOnline ->
+        observingJob = observeNetworkStatusUseCase().flatMapLatest { isOnline ->
             logger.d(TAG, "Network status changed: isOnline=$isOnline")
             if (isOnline) {
                 logger.i(TAG, "Network online - starting market data streams")
 
-                merge(
-                    getMarketCoinsUseCase(),
+                val streams = if (!hasInitializedOnce) {
+                    hasInitializedOnce = true
+                    merge(
+                        getMarketCoinsUseCase(),
+                        startTickerUpdates()
+                    )
+                } else {
                     startTickerUpdates()
-                )
-                .withResilience(
+                }
+                streams.withResilience(
                     bufferSize = 100,
                     timeout = 8.seconds
                 )
@@ -79,5 +99,10 @@ class MarketViewModel @Inject constructor(
         }
             .launchIn(viewModelScope)
             .also { logger.d(TAG, "observeNetwork stream launched") }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopObserving()
     }
 }
