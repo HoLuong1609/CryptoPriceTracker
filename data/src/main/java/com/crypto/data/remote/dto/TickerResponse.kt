@@ -23,5 +23,8 @@ data class TickerResponse(
     val lowPrice: String?,
 
     @SerializedName(value = "v", alternate = ["volume"])
-    val volume: String?
+    val volume: String?,
+
+    @SerializedName(value = "q", alternate = ["quoteVolume"])
+    val quoteVolume: String?  // Volume in quote asset (USDT)
 )

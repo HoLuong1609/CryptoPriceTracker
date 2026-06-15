@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -25,6 +26,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.paging.compose.collectAsLazyPagingItems
+import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
 import com.crypto.core.theme.BinanceColors.ACCENT_YELLOW
 import com.crypto.core.theme.BinanceColors.BACKGROUND_SECONDARY
 import com.crypto.core.theme.BinanceColors.SURFACE
@@ -207,7 +210,17 @@ private fun MarketRow(
     // Format symbol: BTCUSDT -> BTC/USDT
     val displaySymbol = formatSymbol(coin.symbol)
     // Extract base symbol for icon
-    val baseSymbol = coin.symbol.removeSuffix("USDT").removeSuffix("BTC").removeSuffix("ETH").removeSuffix("BNB")
+    val baseSymbol = remember(coin.symbol) {
+        val quoteAssets = listOf("USDT", "BUSD", "BTC", "ETH", "BNB")
+        var result = coin.symbol
+        for (quote in quoteAssets) {
+            if (result.endsWith(quote) && result.length > quote.length) {
+                result = result.removeSuffix(quote)
+                break
+            }
+        }
+        result
+    }
 
     Row(
         modifier = Modifier
@@ -217,20 +230,10 @@ private fun MarketRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Coin icon placeholder
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .clip(CircleShape)
-                .background(Color(0xFF2B3139)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = baseSymbol.take(1),
-                color = Color(0xFFF0B90B),
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
-            )
-        }
+        CoinIcon(
+            symbol = coin.symbol,
+            baseSymbol = baseSymbol
+        )
 
         Spacer(modifier = Modifier.width(10.dp))
 
@@ -287,6 +290,50 @@ private fun MarketRow(
                 color = Color.White,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 13.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun CoinIcon(
+    symbol: String,
+    baseSymbol: String,
+    modifier: Modifier = Modifier
+) {
+
+    val coinSymbol = baseSymbol.lowercase()
+    val iconUrl = "https://assets.coincap.io/assets/icons/$coinSymbol@2x.png"
+
+    var imageLoadState by remember { mutableStateOf<AsyncImagePainter.State>(AsyncImagePainter.State.Empty) }
+
+    Box(
+        modifier = modifier
+            .size(36.dp)
+            .clip(CircleShape)
+            .background(Color(SURFACE)),
+        contentAlignment = Alignment.Center
+    ) {
+        // Always try to load the image
+        AsyncImage(
+            model = iconUrl,
+            contentDescription = symbol,
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape),
+            onState = { state ->
+                imageLoadState = state
+            },
+            contentScale = ContentScale.Crop
+        )
+
+        // Show fallback text if image is loading or failed
+        if (imageLoadState !is AsyncImagePainter.State.Success) {
+            Text(
+                text = baseSymbol.take(3).uppercase(),
+                color = Color(ACCENT_YELLOW),
+                fontWeight = FontWeight.Bold,
+                fontSize = 11.sp
             )
         }
     }

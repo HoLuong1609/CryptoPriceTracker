@@ -13,7 +13,7 @@ fun TickerResponse.toMarketCoin(): MarketCoin {
         priceChangePercent = priceChangePercent?.toDoubleOrNull() ?: 0.0,
         high = highPrice?.toDoubleOrNull() ?: 0.0,
         low = lowPrice?.toDoubleOrNull() ?: 0.0,
-        volume = volume?.toDoubleOrNull() ?: 0.0
+        volume = quoteVolume?.toDoubleOrNull() ?: 0.0  // Use quoteVolume (USDT volume)
     )
 }
 
@@ -22,7 +22,10 @@ fun TickerResponse.toEntity(): MarketCoinEntity {
     return MarketCoinEntity(
         symbol = symbol ?: "",
         price = lastPrice?.toDoubleOrNull() ?: 0.0,
-        priceChangePercent = priceChangePercent?.toDoubleOrNull() ?: 0.0
+        priceChangePercent = priceChangePercent?.toDoubleOrNull() ?: 0.0,
+        high = highPrice?.toDoubleOrNull() ?: 0.0,
+        low = lowPrice?.toDoubleOrNull() ?: 0.0,
+        volume = quoteVolume?.toDoubleOrNull() ?: 0.0
     )
 }
 
