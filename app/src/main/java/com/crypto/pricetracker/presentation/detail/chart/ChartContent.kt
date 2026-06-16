@@ -1,4 +1,4 @@
-package com.crypto.pricetracker.presentation.chart
+package com.crypto.pricetracker.presentation.detail.chart
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

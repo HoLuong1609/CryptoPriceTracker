@@ -1,4 +1,4 @@
-package com.crypto.pricetracker.presentation.chart
+package com.crypto.pricetracker.presentation.detail.chart
 
 import com.crypto.domain.model.Kline
 import com.crypto.domain.model.KlineInterval

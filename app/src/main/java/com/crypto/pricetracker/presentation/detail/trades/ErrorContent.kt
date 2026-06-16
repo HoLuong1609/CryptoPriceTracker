@@ -1,4 +1,4 @@
-package com.crypto.pricetracker.presentation.orderbook
+package com.crypto.pricetracker.presentation.detail.trades
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

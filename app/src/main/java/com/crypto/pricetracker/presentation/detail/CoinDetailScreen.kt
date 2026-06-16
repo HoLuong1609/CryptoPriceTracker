@@ -1,29 +1,28 @@
 package com.crypto.pricetracker.presentation.detail
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.crypto.core.util.CurrencyFormatter.formatSymbol
 import com.crypto.domain.model.KlineInterval
-import com.crypto.pricetracker.presentation.chart.ChartContent
-import com.crypto.pricetracker.presentation.chart.KlineViewModel
-import com.crypto.pricetracker.presentation.orderbook.OrderBookScreen
-import com.crypto.pricetracker.presentation.orderbook.OrderBookViewModel
+import com.crypto.pricetracker.presentation.detail.chart.KlineViewModel
+import com.crypto.pricetracker.presentation.detail.components.CoinDetailActionBar
+import com.crypto.pricetracker.presentation.detail.components.CoinDetailContent
+import com.crypto.pricetracker.presentation.detail.model.DetailTab
+import com.crypto.pricetracker.presentation.detail.orderbook.OrderBookViewModel
+import com.crypto.pricetracker.presentation.detail.trades.TradesViewModel
 import com.crypto.pricetracker.ui.theme.ComposeColors
-import com.crypto.pricetracker.presentation.trades.TradesScreen
-import com.crypto.pricetracker.presentation.trades.TradesViewModel
 
+/**
+ * Coin Detail Screen - Detail view for a specific cryptocurrency
+ *
+ * @param symbol Trading pair symbol (e.g., "BTCUSDT")
+ * @param onBackClick Callback when back button is clicked
+ * @param modifier Optional modifier
+ * @param klineViewModel ViewModel for chart data
+ */
 @Composable
 fun CoinDetailScreen(
     symbol: String,
@@ -32,9 +31,9 @@ fun CoinDetailScreen(
     klineViewModel: KlineViewModel = hiltViewModel()
 ) {
     val klineState by klineViewModel.uiState.collectAsState()
-    var selectedTab by remember { mutableIntStateOf(0) }
 
-    // Hoist ViewModels here so they survive tab switches
+    var selectedTab by remember { mutableStateOf<DetailTab>(DetailTab.Price) }
+
     val orderBookViewModel: OrderBookViewModel = hiltViewModel<OrderBookViewModel, OrderBookViewModel.Factory> { factory ->
         factory.create(symbol)
     }
@@ -55,74 +54,20 @@ fun CoinDetailScreen(
             .statusBarsPadding()
     ) {
         // Action bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(ComposeColors.BackgroundPrimary)
-                .padding(horizontal = 4.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = null,
-                    tint = ComposeColors.TextPrimary
-                )
-            }
-            Text(
-                text = displaySymbol,
-                color = ComposeColors.TextPrimary,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        CoinDetailActionBar(
+            symbol = displaySymbol,
+            onBackClick = onBackClick
+        )
 
-        // Tab row
-        val tabs = listOf("Price", "Order Book", "Trades")
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(ComposeColors.BackgroundPrimary)
-        ) {
-            tabs.forEachIndexed { index, title ->
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { selectedTab = index }
-                        .padding(vertical = 12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = title,
-                        color = if (selectedTab == index) ComposeColors.TextPrimary else ComposeColors.TextSecondary,
-                        fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
-                        fontSize = 14.sp
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Box(
-                        modifier = Modifier
-                            .width(40.dp)
-                            .height(2.dp)
-                            .background(
-                                if (selectedTab == index) ComposeColors.AccentYellow else Color.Transparent
-                            )
-                    )
-                }
-            }
-        }
-
-        // Tab content
-        when (selectedTab) {
-            0 -> ChartContent(
-                klineState = klineState,
-                onIntervalSelected = { klineViewModel.changeInterval(it) }
-            )
-            1 -> OrderBookScreen(
-                viewModel = orderBookViewModel
-            )
-            2 -> TradesScreen(
-                viewModel = tradesViewModel
-            )
-        }
+        // Content area
+        CoinDetailContent(
+            selectedTab = selectedTab,
+            tabs = DetailTab.all(),
+            klineState = klineState,
+            orderBookViewModel = orderBookViewModel,
+            tradesViewModel = tradesViewModel,
+            onTabSelected = { selectedTab = it },
+            onIntervalSelected = { klineViewModel.changeInterval(it) }
+        )
     }
 }

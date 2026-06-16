@@ -1,12 +1,8 @@
-package com.crypto.pricetracker.presentation.orderbook
+package com.crypto.pricetracker.presentation.detail.orderbook
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -54,33 +50,27 @@ fun OrderBookScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
-        when (uiState) {
-            OrderBookUiState.Loading -> {
-                Box(
-                    modifier = modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
+    when (uiState) {
+        OrderBookUiState.Loading -> {
+            Box(
+                modifier = modifier,
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
-            is OrderBookUiState.Success -> {
-                OrderBookContent(
-                    orderBook = (uiState as OrderBookUiState.Success).orderBook,
-                    modifier = modifier.padding(paddingValues)
-                )
-            }
-            is OrderBookUiState.Error -> {
-                ErrorContent(
-                    message = (uiState as OrderBookUiState.Error).message,
-                    onRetry = { viewModel.retry() },
-                    modifier = modifier.padding(paddingValues)
-                )
-            }
+        }
+        is OrderBookUiState.Success -> {
+            OrderBookContent(
+                orderBook = (uiState as OrderBookUiState.Success).orderBook,
+                modifier = modifier
+            )
+        }
+        is OrderBookUiState.Error -> {
+            ErrorContent(
+                message = (uiState as OrderBookUiState.Error).message,
+                onRetry = { viewModel.retry() },
+                modifier = modifier
+            )
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.crypto.pricetracker.presentation.chart
+package com.crypto.pricetracker.presentation.detail.chart
 
 import android.graphics.Color
 import android.graphics.Paint

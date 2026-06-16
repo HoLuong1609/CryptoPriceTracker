@@ -1,8 +1,7 @@
-package com.crypto.pricetracker.presentation.orderbook
+package com.crypto.pricetracker.presentation.detail.orderbook
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.crypto.domain.model.OrderBook
 import com.crypto.domain.usecase.GetOrderBookUseCase
 import com.crypto.domain.usecase.ObserveOrderBookUseCase
 import dagger.assisted.Assisted
@@ -82,14 +81,4 @@ class OrderBookViewModel @AssistedInject constructor(
         observingJob?.cancel()
     }
 }
-
-/**
- * UI State for Orderbook screen
- */
-sealed class OrderBookUiState {
-    object Loading : OrderBookUiState()
-    data class Success(val orderBook: OrderBook) : OrderBookUiState()
-    data class Error(val message: String) : OrderBookUiState()
-}
-
 
