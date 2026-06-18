@@ -7,22 +7,28 @@ import androidx.paging.cachedIn
 import com.crypto.core.logging.Logger
 import com.crypto.domain.extension.withResilience
 import com.crypto.domain.model.MarketCoin
+import com.crypto.domain.model.TickerUpdate
 import com.crypto.domain.usecase.GetMarketCoinsUseCase
 import com.crypto.domain.usecase.GetPagedMarketCoinsUseCase
 import com.crypto.domain.usecase.ObserveNetworkStatusUseCase
+import com.crypto.domain.usecase.ObserveTickerUpdatesUseCase
 import com.crypto.domain.usecase.StartTickerUpdatesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
+import kotlin.collections.emptyMap
 import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
@@ -31,6 +37,7 @@ class MarketViewModel @Inject constructor(
     private val startTickerUpdates: StartTickerUpdatesUseCase,
     private val getPagedMarketCoinsUseCase: GetPagedMarketCoinsUseCase,
     private val observeNetworkStatusUseCase: ObserveNetworkStatusUseCase,
+    private val observeTickerUpdatesUseCase: ObserveTickerUpdatesUseCase,
     private val logger: Logger
 ) : ViewModel() {
 
@@ -49,6 +56,16 @@ class MarketViewModel @Inject constructor(
         getPagedMarketCoinsUseCase()
             .cachedIn(viewModelScope)
             .also { logger.d(TAG, "markets Flow created and cached") }
+
+    // Realtime price updates (in-memory, no database invalidation)
+    val tickerUpdates: StateFlow<Map<String, TickerUpdate>> =
+        observeTickerUpdatesUseCase()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Eagerly,
+                initialValue = emptyMap()
+            )
+            .also { logger.d(TAG, "tickerUpdates StateFlow created") }
 
     fun startObserving() {
         if (observingJob?.isActive == true) {

@@ -6,15 +6,17 @@ import androidx.paging.PagingData
 import androidx.paging.map
 import com.crypto.core.logging.Logger
 import com.crypto.data.local.room.MarketDao
-import com.crypto.data.local.room.TickerUpdate
 import com.crypto.data.mapper.toEntity
 import com.crypto.data.mapper.toMarketCoin
 import com.crypto.data.remote.api.BinanceApi
 import com.crypto.data.remote.datasource.TickerWebSocketDataSource
 import com.crypto.domain.model.MarketCoin
+import com.crypto.domain.model.TickerUpdate
 import com.crypto.domain.repository.MarketRepository
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -22,7 +24,9 @@ import kotlinx.coroutines.flow.onEach
 import java.math.BigDecimal
 import java.math.RoundingMode
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class MarketRepositoryImpl @Inject constructor(
     private val api: BinanceApi,
     private val marketDao: MarketDao,
@@ -36,6 +40,9 @@ class MarketRepositoryImpl @Inject constructor(
 
     private val lastPrices = mutableMapOf<String, Double>()
     private val lastChanges = mutableMapOf<String, Double>()
+
+    // Store realtime updates in-memory (not in database to avoid invalidation)
+    private val _tickerUpdates = MutableStateFlow<Map<String, TickerUpdate>>(emptyMap())
 
     override suspend fun getMarketCoins(): List<MarketCoin> {
 
@@ -91,14 +98,23 @@ class MarketRepositoryImpl @Inject constructor(
             .filter { it.isNotEmpty() }
             .debounce(200)
             .onEach { updates ->
-                try {
-                    marketDao.updateTickers(updates)
-                    logger.d(TAG, "Database update completed for ${updates.size} coins")
-                } catch (e: Exception) {
-                    logger.e(TAG, "Database update FAILED: ${e.message}", e)
+                // Update in-memory map (NO database update to avoid PagingSource invalidation)
+                val updatesMap = _tickerUpdates.value.toMutableMap()
+                updates.forEach { update ->
+                    updatesMap[update.symbol] = TickerUpdate(
+                        symbol = update.symbol,
+                        price = update.price,
+                        change = update.change
+                    )
                 }
+                _tickerUpdates.value = updatesMap
+                logger.d(TAG, "In-memory ticker map updated: ${updates.size} changes, total ${updatesMap.size} symbols")
             }
             .map { }
+    }
+
+    override fun observeTickerUpdates(): Flow<Map<String, TickerUpdate>> {
+        return _tickerUpdates.asStateFlow()
     }
 
     override fun getPagedMarketCoins(): Flow<PagingData<MarketCoin>> =

@@ -7,8 +7,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 
+/**
+ * Market List Screen - Main entry point for market listing
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MarketListScreen(
@@ -16,10 +20,11 @@ fun MarketListScreen(
     onMarketClick: (String) -> Unit,
     viewModel: MarketViewModel = hiltViewModel(),
 ) {
-    var searchQuery by remember { mutableStateOf("") }
+    val markets = viewModel.markets.collectAsLazyPagingItems()
+    val tickerUpdates by viewModel.tickerUpdates.collectAsStateWithLifecycle()
+
     val snackbarHostState = remember { SnackbarHostState() }
     val lifecycleOwner = LocalLifecycleOwner.current
-    val markets = viewModel.markets.collectAsLazyPagingItems()
 
     // Lifecycle-aware WebSocket management
     DisposableEffect(lifecycleOwner) {
@@ -51,9 +56,8 @@ fun MarketListScreen(
     // Delegate rendering to pure UI component
     MarketListContent(
         markets = markets,
+        tickerUpdates = tickerUpdates,
         onMarketClick = onMarketClick,
-        searchQuery = searchQuery,
-        onSearchQueryChange = { searchQuery = it },
         snackbarHostState = snackbarHostState,
         modifier = modifier
     )

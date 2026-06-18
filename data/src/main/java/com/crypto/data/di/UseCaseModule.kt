@@ -12,6 +12,7 @@ import com.crypto.domain.usecase.GetPagedMarketCoinsUseCase
 import com.crypto.domain.usecase.GetRecentTradesUseCase
 import com.crypto.domain.usecase.ObserveNetworkStatusUseCase
 import com.crypto.domain.usecase.ObserveOrderBookUseCase
+import com.crypto.domain.usecase.ObserveTickerUpdatesUseCase
 import com.crypto.domain.usecase.ObserveTradesUseCase
 import com.crypto.domain.usecase.StartTickerUpdatesUseCase
 import dagger.Module
@@ -53,6 +54,15 @@ object UseCaseModule {
     ): GetPagedMarketCoinsUseCase {
 
         return GetPagedMarketCoinsUseCase(repository)
+
+    }
+
+    @Provides
+    fun provideObserveTickerUpdatesUseCase(
+        repository: MarketRepository
+    ): ObserveTickerUpdatesUseCase {
+
+        return ObserveTickerUpdatesUseCase(repository)
 
     }
 

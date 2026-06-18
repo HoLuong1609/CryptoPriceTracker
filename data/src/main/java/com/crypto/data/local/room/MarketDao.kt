@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import com.crypto.domain.model.TickerUpdate
 
 @Dao
 interface MarketDao {
@@ -37,9 +38,3 @@ interface MarketDao {
         }
     }
 }
-
-data class TickerUpdate(
-    val symbol: String,
-    val price: Double,
-    val change: Double
-)
